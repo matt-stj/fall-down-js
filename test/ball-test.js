@@ -174,6 +174,4 @@ describe('Ball', function() {
     });
   });
 
-
-
 });

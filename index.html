@@ -5,7 +5,14 @@
   <title>Fall Down</title>
 </head>
 <body>
-  <canvas id="game" width="600px" height="440px" style="border: 1px black solid"></canvas>
+  <div style="margin: 0 auto; width: 950px; padding: 50px 0; height: 100%;">
+    <canvas id="game" width="600px" height="440px" style="border: 1px black solid; float: left;"></canvas>
+    <div style="border: 1px solid black; width: 245px; background-color: yellow; height: 440px; padding: 0; margin: 0 50px 50px 50px; display: block; float: left;">
+      <h2 style="margin: 0 auto; border-bottom: 1px solid black; width: 200px; text-align: center; padding: 15px 0 5px 0; font-family: Open Sans; font-weight: 500;">High Scores</h2>
+      <ol class=ordered-list id="high-score-list" style="font-size: 20px; margin: 20px 45px; font-family: Open Sans;">
+      </ol>
+    </div>
+  </div>
   <script src="main.bundle.js"></script>
 </body>
 </html>
