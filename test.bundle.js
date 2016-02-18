@@ -9903,7 +9903,6 @@
 	'use strict';
 
 	var BallHelper = __webpack_require__(3);
-
 	function Ball(canvas) {
 	  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
@@ -9915,31 +9914,25 @@
 	  this.keyboarder = new Keyboarder();
 	  this.speed = 5;
 	}
-
 	Ball.prototype.draw = function (ctx) {
 	  var that = this;
 	  BallHelper.drawBallOnCanvas(ctx, that);
 	  return this;
 	};
-
 	Ball.prototype.update = function (fallSpeed, keyboarder, canvas) {
 	  var ball = this;
 	  moveBallLaterally(ball, canvas, this.speed);
 	  moveBallLongitudinally(ball, canvas, this.speed);
 	};
-
 	function leftArrowKeyDown(ball) {
 	  return ball.keyboarder.isDown(ball.keyboarder.KEYS.LEFT) && ball.x > ball.r;
 	}
-
 	function rightArrowKeyDown(ball, canvas) {
 	  return ball.keyboarder.isDown(ball.keyboarder.KEYS.RIGHT) && ballIsOnCanvas(ball, canvas);
 	}
-
 	function ballIsOnCanvas(ball, canvas) {
 	  return ball.x > 0 && ball.x < canvas.width - ball.r && ball.y < canvas.height;
 	}
-
 	function moveBallLaterally(ball, canvas, ballSpeed) {
 	  if (leftArrowKeyDown(ball)) {
 	    ball.x -= ballSpeed;
@@ -9947,7 +9940,6 @@
 	    ball.x += ballSpeed;
 	  }
 	}
-
 	function moveBallLongitudinally(ball, canvas, fallSpeed) {
 	  if (ball.y >= canvas.height - ball.r) {
 	    ball.y = ball.y;
@@ -9955,26 +9947,25 @@
 	    ball.y += fallSpeed;
 	  }
 	}
-
 	var Keyboarder = function Keyboarder() {
 	  var keyState = {};
 	  BallHelper.returnTrueIfKeyEventTriggers(keyState);
 	  BallHelper.returnFalseIfKeyIsReleased(keyState);
-
 	  this.isDown = function (keyCode) {
 	    return keyState[keyCode] === true;
 	  };
-
-	  this.KEYS = { LEFT: 37, RIGHT: 39 };
+	  this.KEYS = {
+	    LEFT: 37,
+	    RIGHT: 39
+	  };
 	};
-
 	module.exports = Ball;
 
 /***/ },
 /* 3 */
 /***/ function(module, exports) {
 
-	"use strict";
+	'use strict';
 
 	module.exports = {
 	  radius: function radius(options) {
@@ -9991,7 +9982,7 @@
 	    ctx.beginPath();
 	    ctx.arc(that.x, that.y, that.r, that.sAngle, that.eAngle);
 	    ctx.stroke();
-	    ctx.fillStyle = "white";
+	    ctx.fillStyle = 'white';
 	    ctx.fill();
 	  },
 	  returnTrueIfKeyEventTriggers: function returnTrueIfKeyEventTriggers(keyStorage) {
@@ -10005,8 +9996,7 @@
 	    };
 	  },
 	  userLosesAndGameStops: function userLosesAndGameStops() {
-	    return "You lose";
-	    // this.y = this.r
+	    return 'You lose'; // this.y = this.r
 	  }
 	};
 
@@ -10018,7 +10008,6 @@
 
 	var GateHelper = __webpack_require__(5);
 	var ViewportHelper = __webpack_require__(6);
-
 	function Gate(options, canvas) {
 	  this.gateHeight = options.gateHeight || 15;
 	  this.y = options.y || ViewportHelper.bottomEdge(canvas) - this.gateHeight;
@@ -10027,9 +10016,8 @@
 	  this.canvasWidth = canvas.width;
 	  this.scoreable = true;
 	  this.img = new Image();
-	  this.img.src = "assets/board.png";
+	  this.img.src = 'assets/board.png';
 	}
-
 	Gate.prototype.update = function (gameSpeed, canvas) {
 	  var gateOffTopofScreen = -this.gateHeight;
 	  this.y -= gameSpeed;
@@ -10040,12 +10028,10 @@
 	    this.gateEnd = GateHelper.randGateEndAttrs(this.gateStart);
 	  }
 	};
-
 	Gate.prototype.draw = function (ctx) {
 	  ctx.drawImage(this.img, 0, this.y, this.gateStart, this.gateHeight);
 	  ctx.drawImage(this.img, this.gateEnd, this.y, this.canvasWidth, this.gateHeight);
 	};
-
 	module.exports = Gate;
 
 /***/ },
@@ -10058,7 +10044,6 @@
 	  randGateStartAttrs: function randGateStartAttrs(canvas) {
 	    return Math.abs(Math.floor(Math.random() * canvas.width - 200 + 0));
 	  },
-
 	  randGateEndAttrs: function randGateEndAttrs(gateStart) {
 	    return Math.abs(gateStart + Math.floor(Math.random() * 100 + 15));
 	  }
@@ -10083,7 +10068,6 @@
 	'use strict';
 
 	var Gate = __webpack_require__(4);
-
 	function buildGates(gates, canvas) {
 	  var spacing = 75;
 	  for (var i = 0; i < 6; i++) {
@@ -10092,7 +10076,6 @@
 	    spacing += 75;
 	  }
 	}
-
 	module.exports = buildGates;
 
 /***/ },
@@ -10107,7 +10090,6 @@
 	    gates[i].update(gameSpeed, canvas);
 	  }
 	}
-
 	module.exports = displayGates;
 
 /***/ },
@@ -10120,54 +10102,45 @@
 	var PowerupEdges = __webpack_require__(11);
 	var GatesEdges = __webpack_require__(12);
 	var GateExpander = __webpack_require__(13);
-
 	var collisionDetect = function collisionDetect(ball, gates, score, game, powerup, expandGates) {
 	  for (var i = 0; i < gates.length; i++) {
 	    var gate = GatesEdges.gate(gates, i);
-
 	    ballCollideswithGates(ball, gates, i);
 	    ballFallsBetweenGates(ball, gate, gates, i, game);
 	    ballHitsSlowdown(ball, powerup, game);
 	    ballHitsGateExpander(ball, gates, expandGates, game);
 	  }
 	};
-
 	function ballCollideswithGates(ball, gates, i) {
 	  if (ballOnTopofGate(ball, gates, i) && ball.x > GatesEdges.rightGate(gates, i) || ballOnTopofGate(ball, gates, i) && ball.x < GatesEdges.leftGate(gates, i)) {
 	    ball.y = GatesEdges.topOfGate(gates, i);
 	    return;
-	  };
+	  }
 	}
-
 	function ballOnTopofGate(ball, gates, i) {
 	  return BallEdges.bottomOfBall(ball) > GatesEdges.centerOfGate(gates, i) && BallEdges.centerOfBall(ball) < GatesEdges.bottomOfGate(gates, i);
 	}
-
 	function ballFallsBetweenGates(ball, gate, gates, i, game) {
 	  if (GatesEdges.bottomOfGate(gates, i) < BallEdges.topOfBall(ball) && gate.scoreable === true) {
-
 	    game.score++;
 	    gate.scoreable = false;
 	    return;
 	  }
 	}
-
 	function ballHitsSlowdown(ball, powerup, game) {
 	  if (BallEdges.leftOfBall(ball) >= PowerupEdges.leftOfPowerup(powerup) && BallEdges.rightOfBall(ball) <= PowerupEdges.rightOfPowerup(powerup) && BallEdges.topOfBall(ball) <= PowerupEdges.powerupGateBottom(powerup) && BallEdges.bottomOfBall(ball) >= PowerupEdges.powerupGateTop(powerup)) {
-
 	    powerup.onScreen = false;
 	    game.slowDownActive = true;
-	  };
+	    game.slowDown(powerup);
+	  }
 	}
-
 	function ballHitsGateExpander(ball, gates, expandGates, game) {
 	  if (BallEdges.leftOfBall(ball) >= GateExpander.leftOfExpandGates(expandGates) && BallEdges.rightOfBall(ball) <= GateExpander.rightOfExpandGates(expandGates) && BallEdges.topOfBall(ball) <= GateExpander.expandGatesBottom(expandGates) && BallEdges.bottomOfBall(ball) >= GateExpander.expandGatesTop(expandGates)) {
 	    expandGates.onScreen = false;
 	    game.expandGatesActive = true;
 	    game.expandGates(gates, expandGates);
-	  };
+	  }
 	}
-
 	module.exports = collisionDetect;
 
 /***/ },
@@ -10177,7 +10150,6 @@
 	"use strict";
 
 	module.exports = {
-
 	  centerOfBall: function centerOfBall(ball) {
 	    return ball.y;
 	  },
@@ -10196,7 +10168,6 @@
 	  leftOfBall: function leftOfBall(ball) {
 	    return ball.x - ball.r;
 	  }
-
 	};
 
 /***/ },
@@ -10206,7 +10177,6 @@
 	"use strict";
 
 	module.exports = {
-
 	  topOfPowerup: function topOfPowerup(powerup) {
 	    return powerup.y - powerup.height / 2;
 	  },
@@ -10228,7 +10198,6 @@
 	  powerupGateTop: function powerupGateTop(powerup) {
 	    return powerup.gate.y - 12;
 	  }
-
 	};
 
 /***/ },
@@ -10238,7 +10207,6 @@
 	"use strict";
 
 	module.exports = {
-
 	  gate: function gate(gates, i) {
 	    return gates[i];
 	  },
@@ -10257,7 +10225,6 @@
 	  leftGate: function leftGate(gates, i) {
 	    return gates[i].gateStart;
 	  }
-
 	};
 
 /***/ },
@@ -10267,7 +10234,6 @@
 	"use strict";
 
 	module.exports = {
-
 	  topOfExpandGates: function topOfExpandGates(expandGates) {
 	    return expandGates.y - expandGates.height / 2;
 	  },
@@ -10289,11 +10255,159 @@
 	  expandGatesTop: function expandGatesTop(expandGates) {
 	    return expandGates.gate.y - 12;
 	  }
-
 	};
 
 /***/ },
-/* 14 */,
+/* 14 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var Game = function Game(canvas, ctx) {
+	  var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+	  this.backgroundColor = options.backgroundColor || 'cyan';
+	  this.width = canvas.width;
+	  this.height = canvas.height;
+	  this.largeFontSize = options.largeFontSize || '70px';
+	  this.smallFontSize = options.smallFontSize || '30px';
+	  this.fontFamily = options.fontFamily || 'Open Sans';
+	  this.textColor = options.textColor || 'black';
+	  this.gameTitle = options.gameTitle || 'Fall Down';
+	  this.instructions = options.instructions || 'Click to Play';
+	  this.speed = options.speed || 0;
+	  this.score = options.score || 0;
+	  this.slowDownActive = false;
+	  this.expandGatesActive = false;
+	};
+	Game.prototype['default'] = function (ctx) {
+	  ctx.fillStyle = this.backgroundColor;
+	  ctx.fillRect(0, 0, this.width, this.height);
+	  ctx.fillStyle = this.textColor;
+	  ctx.font = this.largeFontSize + ' ' + this.fontFamily;
+	  ctx.textAlign = 'center';
+	  ctx.fillText(this.gameTitle, this.width / 2, this.height / 2 - 20);
+	  ctx.font = this.smallFontSize + ' ' + this.fontFamily;
+	  ctx.fillText(this.instructions, this.width / 2, this.height / 2 + 35);
+	};
+	Game.prototype.paused = function (ctx) {
+	  ctx.fillStyle = this.backgroundColor;
+	  ctx.fillRect(0, 0, this.width, this.height);
+	  ctx.fillStyle = this.textColor;
+	  ctx.font = this.largeFontSize + ' ' + this.fontFamily;
+	  ctx.textAlign = 'center';
+	  ctx.fillText('Paused', this.width / 2, this.height / 2 - 20);
+	  ctx.font = this.smallFontSize + ' ' + this.fontFamily;
+	  ctx.fillText(this.instructions, this.width / 2, this.height / 2 + 35);
+	};
+	Game.prototype.lost = function (ctx) {
+	  ctx.fillStyle = this.backgroundColor;
+	  ctx.fillRect(0, 0, this.width, this.height);
+	  ctx.fillStyle = this.textColor;
+	  ctx.font = this.largeFontSize + ' ' + this.fontFamily;
+	  ctx.textAlign = 'center';
+	  ctx.fillText('You lost', this.width / 2, this.height / 2 - 20);
+	  ctx.font = this.smallFontSize + ' ' + this.fontFamily;
+	  ctx.fillText(this.instructions, this.width / 2, this.height / 2 + 35);
+	  ctx.fillText('Score: ' + this.score, this.width / 2, this.height / 2 + 70);
+	  console.log(this.score);
+	};
+	Game.prototype.newHighScore = function (ctx) {
+	  ctx.fillStyle = this.backgroundColor;
+	  ctx.fillRect(0, 0, this.width, this.height);
+	  ctx.fillStyle = this.textColor;
+	  ctx.font = this.largeFontSize + ' ' + this.fontFamily;
+	  ctx.textAlign = 'center';
+	  ctx.fillText('New High Score!', this.width / 2, this.height / 2 - 20);
+	  ctx.font = this.smallFontSize + ' ' + this.fontFamily;
+	  ctx.fillText(this.instructions, this.width / 2, this.height / 2 + 35);
+	  ctx.fillText('Score: ' + this.score, this.width / 2, this.height / 2 + 70);
+	};
+	Game.prototype.update = function (game, ball, powerup) {
+	  if (game.slowDownActive === false) {
+	    normalSpeed(game, ball);
+	  } else if (game.slowDownActive === true) {
+	    slowSpeed(game, ball, powerup);
+	  }
+	};
+	Game.prototype.expandGates = function (gates, powerup) {
+	  gates.forEach(function (gate) {
+	    gate.gateStart -= 25;
+	    gate.gateEnd += 25;
+	  });
+	  resetPowerup(this, powerup);
+	};
+	Game.prototype.slowDown = function (powerup) {
+	  this.slowDownActive = true;
+	  powerup.onScreen = false;
+	  resetSlowDown(this, powerup);
+	  putOnScreen(powerup);
+	};
+	function resetSlowDown(game, powerup) {
+	  setTimeout(function () {
+	    game.slowDownActive = false;
+	  }, 5000);
+	}
+	function putOnScreen(powerup) {
+	  setTimeout(function () {
+	    powerup.onScreen = true;
+	  }, 50000);
+	}
+	function resetPowerup(game, powerup) {
+	  setTimeout(function () {
+	    game.expandGatesActive = false;
+	    powerup.onScreen = true;
+	  }, 5000);
+	}
+	function normalSpeed(game, ball) {
+	  if (game.score < 2) {
+	    game.speed = 0;
+	  } else if (game.score > 2 && game.score < 5) {
+	    game.speed = 1;
+	  } else if (game.score > 5 && game.score < 10) {
+	    game.speed = 1.5;
+	  } else if (game.score > 10 && game.score < 20) {
+	    game.speed = 2;
+	  } else if (game.score > 20 && game.score < 30) {
+	    game.speed = 2.5;
+	    ball.speed = 5.5;
+	  } else if (game.score > 30 && game.score < 40) {
+	    game.speed = 3;
+	    ball.speed = 6;
+	  } else if (game.score > 40 && game.score < 50) {
+	    game.speed = 3.5;
+	    ball.speed = 6.5;
+	  } else if (game.score > 50) {
+	    game.speed = 4;
+	    ball.speed = 7;
+	  }
+	}
+	function slowSpeed(game, ball, powerup) {
+	  if (game.score < 2) {
+	    game.speed = 0;
+	  } else if (game.score > 2 && game.score < 5) {
+	    game.speed = 0.5;
+	  } else if (game.score > 5 && game.score < 10) {
+	    game.speed = 1;
+	  } else if (game.score > 10 && game.score < 20) {
+	    game.speed = 1.5;
+	  } else if (game.score > 20 && game.score < 30) {
+	    game.speed = 2;
+	    ball.speed = 5.5;
+	  } else if (game.score > 30 && game.score < 40) {
+	    game.speed = 2.5;
+	    ball.speed = 6;
+	  } else if (game.score > 40 && game.score < 50) {
+	    game.speed = 3;
+	    ball.speed = 6.5;
+	  } else if (game.score > 50) {
+	    game.speed = 3.5;
+	    ball.speed = 7;
+	  }
+	}
+	module.exports = Game;
+
+/***/ },
 /* 15 */,
 /* 16 */,
 /* 17 */,
@@ -25714,7 +25828,6 @@
 	  this.height = height || 600;
 	  this.width = width || 1000;
 	}
-
 	module.exports = ViewPort;
 
 /***/ },
@@ -25769,41 +25882,55 @@
 	var CollisionDetect = __webpack_require__(9);
 	var Ball = __webpack_require__(2);
 	var ViewPort = __webpack_require__(73);
+	var BallEdges = __webpack_require__(10);
+	var PowerupEdges = __webpack_require__(11);
+	var GatesEdges = __webpack_require__(12);
+	var GateExpander = __webpack_require__(13);
+	var Game = __webpack_require__(14);
 
 	describe('Collisions', function () {
 
 	  context('detection', function () {
 
-	    it('a ball that has an x position less than a gateStart position and a y position equal to the top of a gate, it will move up with the gate', function () {
+	    var canvas = document.getElementById("game");
+	    var ctx = canvas.getContext('2d');
+	    var gates = [new Gate({}, canvas)];
+	    var ball = new Ball({}, canvas);
+	    var game = new Game(canvas, ctx, { speed: 15, score: 40 });
+	    var expandGates = "";
+	    var powerup = "";
+	    GateBuilder(gates, canvas);
 
-	      var canvas = new ViewPort(300, 200);
-	      var gates = [new Gate({}, canvas)];
-	      var ball = new Ball({ r: 10 }, canvas);
-	      var score = [];
-	      GateBuilder(gates, canvas);
+	    var ballSpeed = 5;
+	    var acceleration = 0.5;
+	    var fallSpeed = 5;
 
-	      var gate = gates[0];
-	      gate.y = 75;
-	      gate.gateHeight = 15;
-	      gate.gateStart = 150;
-	      var centerOfGate = gate.y;
-	      var topOfGate = centerOfGate + gate.gateHeight;
+	    var gate = gates[0];
+	    gate.y = 88;
+	    gate.gateHeight = 15;
+	    gate.gateStart = 150;
+	    gate.gateEnd = 190;
+	    var centerOfGate = gate.y;
+	    var topOfGate = centerOfGate + gate.gateHeight;
 
-	      ball.y = 80;
-	      ball.x = 50;
-	      var centerOfBall = ball.y;
-	      var bottomOfBall = centerOfBall + ball.r;
+	    ball.y = 80;
+	    ball.x = 50;
 
-	      assert.equal(topOfGate, bottomOfBall);
-	      assert(ball.x < gate.gateStart);
+	    it('ball y is correct when ball collides with left gate', function () {
+	      assert.equal(BallEdges.bottomOfBall(ball), gate.y);
+	    });
 
-	      CollisionDetect(ball, gates, score);
+	    it('ball x is correct when ball collides with left gate', function () {
+	      assert(BallEdges.rightOfBall(ball) < gate.gateStart);
+	    });
 
-	      gate.update(10, canvas);
+	    it('ball y is correct when ball collides with right gate', function () {
+	      assert.equal(BallEdges.bottomOfBall(ball), gate.y);
+	    });
 
-	      assert.equal(gate.y, 65);
-	      assert.equal(bottomOfBall, 65);
-	      // how do we test this?
+	    it('ball x is correct when ball collides with right gate', function () {
+	      ball.x = 200;
+	      assert(BallEdges.leftOfBall(ball) > gate.gateEnd);
 	    });
 	  });
 	});
