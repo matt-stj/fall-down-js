@@ -1,14 +1,18 @@
 # Fall Down
 
-#### The Team
+### The Team
 
-**[Matt Stjernholm](https://github.com/matt-stj)**
+#### Matt Stjernholm
+
+[Portfolio](http://people.turing.io/people/matt_stjernholm) // [Github](https://github.com/matt-stj) // [Email](mailto:emily@emilydowdle.com)
 
 Product Manager turned Programmer. I'm a maker at heart, who found my passion for writing code after wearing many hats on a startup product team. Today, as a full-stack developer, I'm looking to expand my skills at a fast-paced organization that values growth, new ideas, and creativity.
 
 Building API’s, working with Rails, and mastering Javascript frameworks are areas that pique my interest, and I’m always excited by learning new technologies.
 
-**[Emily Dowdle](http://emilydowdle.com)**
+#### Emily Dowdle
+
+[Website](http://emilydowdle.com) // [Github](https://github.com/emilydowdle/) // [Email](mailto:emily@emilydowdle.com)
 
 I believe in using TDD to create well-written code that meets the demands of business priorities. I’m passionate about learning and want to join an innovative team.
 
