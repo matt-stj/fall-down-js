@@ -44,7 +44,13 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	"use strict";
+
+	var highScores = [];
+	if (localStorage["high-scores"] != undefined) {
+	  highScores = JSON.parse(localStorage["high-scores"]);
+	}
+	displayHighScores();
 
 	var $ = __webpack_require__(1);
 	var Ball = __webpack_require__(2);
@@ -52,8 +58,10 @@
 	var GateBuilder = __webpack_require__(7);
 	var GatePainter = __webpack_require__(8);
 	var CollisionDetect = __webpack_require__(9);
-	var Game = __webpack_require__(10);
-	var Scoring = __webpack_require__(11);
+	var Game = __webpack_require__(11);
+	var Scoring = __webpack_require__(12);
+	var PowerUp = __webpack_require__(13);
+	var RectangularBall = __webpack_require__(14);
 
 	var canvas = document.getElementById("game");
 	var ctx = canvas.getContext('2d');
@@ -67,10 +75,17 @@
 	var gates = [];
 	var ball = new Ball({}, canvas);
 	var game = new Game(canvas, ctx);
-
 	var score = [];
+	var scoreAdded = false;
 
 	GateBuilder(gates, canvas);
+	var powerup = new PowerUp({ gate: gates[1],
+	  action: "slowDown"
+	}, canvas);
+
+	var expandGates = new PowerUp({ gate: gates[3],
+	  action: "expandGates"
+	}, canvas);
 
 	canvas.addEventListener('click', function () {
 	  if (gameInPlay && !lost) {
@@ -83,22 +98,23 @@
 	});
 
 	requestAnimationFrame(function gameLoop() {
-	  var adjustedScore = score.length;
-	  game.score = adjustedScore;
 	  ctx.clearRect(0, 0, canvas.width, canvas.height);
 	  checkIfPlayerLost(ball, canvas);
 	  if (gameInPlay && !lost) {
-	    drawGame(ctx, fallSpeed, acceleration, ballSpeed, canvas, gameInPlay, gates, ball, adjustedScore);
+	    drawGame(ctx, fallSpeed, acceleration, ballSpeed, canvas, gameInPlay, gates, ball, game);
+	    powerup.draw(ctx);
+	    powerup.update(game.speed, canvas);
+	    expandGates.draw(ctx);
+	    expandGates.update(game.speed, canvas);
 	    requestAnimationFrame(gameLoop);
 	  } else if (lost) {
-	    game.lost(ctx);
-	    resetGame(ball, canvas);
+	    resetGame(ball, canvas, game, ctx);
 	    requestAnimationFrame(gameLoop);
 	  } else if (paused) {
 	    game.paused(ctx);
 	    requestAnimationFrame(gameLoop);
 	  } else {
-	    game['default'](ctx);
+	    game["default"](ctx);
 	    requestAnimationFrame(gameLoop);
 	  }
 	});
@@ -109,19 +125,66 @@
 	  }
 	}
 
-	function drawGame(ctx, fallSpeed, acceleration, ballSpeed, canvas, gameInPlay, gates, ball, adjustedScore) {
+	function drawGame(ctx, fallSpeed, acceleration, ballSpeed, canvas, gameInPlay, gates, ball, game) {
+	  var img = new Image();
+	  img.src = "../assets/wall.png";
+	  if (Math.abs(ball.x - powerup.x) < 10 && Math.abs(ball.y - powerup.y) < 10) {
+	    console.log(ball.x, ball.y, powerup.x, powerup.y);
+	  }
+	  ctx.drawImage(img, 0, 0);
 	  ball.draw(ctx);
 	  ball.update(fallSpeed, acceleration, canvas, gameInPlay);
 	  GatePainter(gates, ctx, game.speed, canvas);
-	  CollisionDetect(ball, gates, score);
-	  game.update(adjustedScore, ball);
+	  CollisionDetect(ball, gates, score, game, powerup, expandGates);
+	  game.update(game, ball, powerup);
 	  Scoring(ctx, game.score);
+	  if (scoreAdded) {
+	    game.score = 0;
+	    powerup.gate = gates[1];
+	    scoreAdded = false;
+	  }
 	}
 
-	function resetGame(ball, canvas) {
+	function resetGame(ball, canvas, game) {
 	  ball.y = 10;
 	  gates = [];
 	  GateBuilder(gates, canvas);
+	  if (scoreAdded === false) {
+	    updateHighScores(game.score, highScores);
+	    displayHighScores();
+	  }
+	  if (highScores.includes(game.score)) {
+	    game.newHighScore(ctx);
+	  } else {
+	    game.lost(ctx);
+	  }
+	  scoreAdded = true;
+	}
+
+	function addScoreToHighScoreList(score) {
+	  var node = document.createElement("LI");
+	  var textnode = document.createTextNode(score + " points");
+	  node.appendChild(textnode);
+	  document.getElementById("high-score-list").appendChild(node);
+	}
+
+	function displayHighScores() {
+	  document.getElementById("high-score-list").innerHTML = '';
+	  highScores.forEach(function (score) {
+	    addScoreToHighScoreList(score);
+	  });
+	}
+
+	function updateHighScores(gameScore, highScores, options) {
+	  var opts = options || { numberOfScoresToKeep: 5 };
+	  highScores.push(gameScore);
+	  highScores.sort(function (a, b) {
+	    return b - a;
+	  });
+	  if (highScores.length > opts.numberOfScoresToKeep) {
+	    highScores.pop();
+	  }
+	  localStorage["high-scores"] = JSON.stringify(highScores);
 	}
 
 /***/ },
@@ -10060,7 +10123,7 @@
 	    ctx.beginPath();
 	    ctx.arc(that.x, that.y, that.r, that.sAngle, that.eAngle);
 	    ctx.stroke();
-	    ctx.fillStyle = "blue";
+	    ctx.fillStyle = "white";
 	    ctx.fill();
 	  },
 	  returnTrueIfKeyEventTriggers: function returnTrueIfKeyEventTriggers(keyStorage) {
@@ -10096,7 +10159,7 @@
 	  this.canvasWidth = canvas.width;
 	  this.scoreable = true;
 	  this.img = new Image();
-	  this.img.src = "./assets/board.png";
+	  this.img.src = "../assets/board.png";
 	}
 
 	Gate.prototype.update = function (gameSpeed, canvas) {
@@ -10111,8 +10174,8 @@
 	};
 
 	Gate.prototype.draw = function (ctx) {
-	  ctx.drawImage(this.img, 0, this.y);
-	  ctx.drawImage(this.img, this.gateEnd, this.y);
+	  ctx.drawImage(this.img, 0, this.y, this.gateStart, this.gateHeight);
+	  ctx.drawImage(this.img, this.gateEnd, this.y, this.canvasWidth, this.gateHeight);
 	};
 
 	module.exports = Gate;
@@ -10157,7 +10220,7 @@
 	  var spacing = 75;
 	  for (var i = 0; i < 6; i++) {
 	    var gatePosition = canvas.height - spacing;
-	    gates.push(new Gate({ y: gatePosition }, canvas));
+	    gates.push(new Gate({ y: gatePosition + 75 }, canvas));
 	    spacing += 75;
 	  }
 	}
@@ -10183,17 +10246,49 @@
 
 /***/ },
 /* 9 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var collisionDetect = function collisionDetect(ball, gates, score) {
-	  for (var i = 0; i < gates.length; i++) {
+	var BallEdges = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"./helpers/ball-edges\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
 
-	    // pull all vars out into helper
-	    var centerOfBall = ball.y;
-	    var bottomOfBall = centerOfBall + ball.r;
-	    var topOfBall = centerOfBall + ball.r;
+	var collisionDetect = function collisionDetect(ball, gates, score, game, powerup, expandGates) {
+	  for (var i = 0; i < gates.length; i++) {
+	    var detectPowerupCollision = function detectPowerupCollision(ball, powerup) {
+	      if (leftOfBall >= leftOfPowerup && rightOfBall <= rightOfPowerup && topOfBall <= powerupGateBottom && bottomOfBall >= powerupGateTop) {
+
+	        powerup.onScreen = false;
+	        game.slowDownActive = true;
+	      };
+	    };
+
+	    var centerOfBall = BallEdges.centerOfBall(ball);
+	    var horizCenterBall = BallEdges.horizCenterBall(ball);
+	    var bottomOfBall = BallEdges.bottomOfBall(ball);
+	    var topOfBall = BallEdges.topOfBall(ball);
+	    var rightOfBall = BallEdges.rightOfBall(ball);
+	    var leftOfBall = BallEdges.leftOfBall(ball);
+
+	    var topOfPowerup = powerup.y - powerup.height / 2;
+	    var bottomOfPowerup = powerup.y + powerup.height / 2;
+	    var rightOfPowerup = powerup.x + powerup.width / 2;
+	    var leftOfPowerup = powerup.x - powerup.width / 2;
+	    var centerOfPowerup = powerup.x;
+	    var powerupGateBottom = powerup.gate.y + 12;
+	    var powerupGateTop = powerup.gate.y - 12;
+
+	    // gates
+	    var topOfExpandGates = expandGates.y - expandGates.height / 2;
+	    var bottomOfExpandGates = expandGates.y + expandGates.height / 2;
+	    var rightOfExpandGates = expandGates.x + expandGates.width / 2;
+	    var leftOfExpandGates = expandGates.x - expandGates.width / 2;
+	    var centerOfExpandGates = expandGates.x;
+	    var expandGatesBottom = expandGates.gate.y + 12;
+	    var expandGatesTop = expandGates.gate.y - 12;
+
+	    // console.log("POWERUP", "gate", powerupGate)
+
+	    // pull into helper
 	    var gate = gates[i];
 	    var centerOfGate = gates[i].y;
 	    var topOfGate = centerOfGate - gates[i].gateHeight / 2;
@@ -10201,7 +10296,15 @@
 	    var rightGate = gates[i].gateEnd;
 	    var leftGate = gates[i].gateStart;
 
+	    detectPowerupCollision(ball, powerup);
+
+	    if (leftOfBall >= leftOfExpandGates && rightOfBall <= rightOfExpandGates && topOfBall <= expandGatesBottom && bottomOfBall >= expandGatesTop) {
+	      expandGates.onScreen = false;
+	      game.expandGatesActive = true;
+	      game.expandGates(gates, expandGates);
+	    };
 	    // refactor ball resting on gate logic
+
 	    if (bottomOfBall > centerOfGate && centerOfBall < bottomOfGate && ball.x > rightGate) {
 	      ball.y = topOfGate;
 	      return;
@@ -10213,9 +10316,9 @@
 	    if (bottomOfGate < topOfBall && gate.scoreable === true) {
 
 	      // console.log(gate.scoreable)
-	      score.push(1);
+	      game.score++;
 	      gate.scoreable = false;
-	      console.log(score);
+	      // console.log(score)
 	      // console.log(gate.scoreable)
 	      // console.log(score)
 	      return;
@@ -10228,7 +10331,8 @@
 	module.exports = collisionDetect;
 
 /***/ },
-/* 10 */
+/* 10 */,
+/* 11 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10239,7 +10343,7 @@
 	  this.backgroundColor = options.backgroundColor || "cyan";
 	  this.width = canvas.width;
 	  this.height = canvas.height;
-	  this.largeFontSize = options.largeFontSize || "80px";
+	  this.largeFontSize = options.largeFontSize || "70px";
 	  this.smallFontSize = options.smallFontSize || "30px";
 	  this.fontFamily = options.fontFamily || "Open Sans";
 	  this.textColor = options.textColor || "black";
@@ -10247,6 +10351,8 @@
 	  this.instructions = options.instructions || "Click to Play";
 	  this.speed = options.speed || 0;
 	  this.score = options.score || 0;
+	  this.slowDownActive = false;
+	  this.expandGatesActive = false;
 	};
 
 	Game.prototype["default"] = function (ctx) {
@@ -10281,36 +10387,106 @@
 	  ctx.font = this.smallFontSize + " " + this.fontFamily;
 	  ctx.fillText(this.instructions, this.width / 2, this.height / 2 + 35);
 	  ctx.fillText("Score: " + this.score, this.width / 2, this.height / 2 + 70);
+	  console.log(this.score);
 	};
 
-	Game.prototype.update = function (score, ball) {
-	  if (score < 2) {
-	    this.speed = 0;
-	  } else if (score > 2 && score < 5) {
-	    this.speed = 1;
-	  } else if (score > 5 && score < 10) {
-	    this.speed = 1.5;
-	  } else if (score > 10 && score < 20) {
-	    this.speed = 2;
-	  } else if (score > 20 && score < 30) {
-	    this.speed = 2.5;
-	    ball.speed = 5.5;
-	  } else if (score > 30 && score < 40) {
-	    this.speed = 3;
-	    ball.speed = 6;
-	  } else if (score > 40 && score < 50) {
-	    this.speed = 3.5;
-	    ball.speed = 6.5;
-	  } else if (score > 50) {
-	    this.speed = 4;
-	    ball.speed = 7;
+	Game.prototype.newHighScore = function (ctx) {
+	  ctx.fillStyle = this.backgroundColor;
+	  ctx.fillRect(0, 0, this.width, this.height);
+	  ctx.fillStyle = this.textColor;
+	  ctx.font = this.largeFontSize + " " + this.fontFamily;
+	  ctx.textAlign = "center";
+	  ctx.fillText("New High Score!", this.width / 2, this.height / 2 - 20);
+	  ctx.font = this.smallFontSize + " " + this.fontFamily;
+	  ctx.fillText(this.instructions, this.width / 2, this.height / 2 + 35);
+	  ctx.fillText("Score: " + this.score, this.width / 2, this.height / 2 + 70);
+	};
+
+	Game.prototype.update = function (game, ball, powerup) {
+	  console.log("powerup onscreen = ", powerup.onScreen, "games slowdown active", game.slowDownActive);
+	  if (game.slowDownActive === false) {
+	    normalSpeed(game, ball);
+	  } else if (game.slowDownActive === true) {
+	    slowSpeed(game, ball, powerup);
 	  }
 	};
+
+	Game.prototype.expandGates = function (gates, powerup) {
+	  gates.forEach(function (gate) {
+	    gate.gateStart -= 25;
+	    gate.gateEnd += 25;
+	  });
+
+	  resetPowerup(this, powerup);
+	};
+
+	function resetPowerup(game, powerup) {
+	  setTimeout(function () {
+	    game.expandGatesActive = false;
+	    powerup.onScreen = true;
+	  }, 10000);
+	}
+
+	function normalSpeed(game, ball) {
+	  if (game.score < 2) {
+	    game.speed = 0;
+	  } else if (game.score > 2 && game.score < 5) {
+	    game.speed = 1;
+	  } else if (game.score > 5 && game.score < 10) {
+	    game.speed = 1.5;
+	  } else if (game.score > 10 && game.score < 20) {
+	    game.speed = 2;
+	  } else if (game.score > 20 && game.score < 30) {
+	    game.speed = 2.5;
+	    ball.speed = 5.5;
+	  } else if (game.score > 30 && game.score < 40) {
+	    game.speed = 3;
+	    ball.speed = 6;
+	  } else if (game.score > 40 && game.score < 50) {
+	    game.speed = 3.5;
+	    ball.speed = 6.5;
+	  } else if (game.score > 50) {
+	    game.speed = 4;
+	    ball.speed = 7;
+	  }
+	}
+
+	function slowSpeed(game, ball, powerup) {
+	  if (game.score < 2) {
+	    game.speed = 0;
+	  } else if (game.score > 2 && game.score < 5) {
+	    game.speed = 0.5;
+	  } else if (game.score > 5 && game.score < 10) {
+	    game.speed = 1;
+	  } else if (game.score > 10 && game.score < 20) {
+	    game.speed = 1.5;
+	  } else if (game.score > 20 && game.score < 30) {
+	    game.speed = 2.0;
+	    ball.speed = 5.5;
+	  } else if (game.score > 30 && game.score < 40) {
+	    game.speed = 2.5;
+	    ball.speed = 6;
+	  } else if (game.score > 40 && game.score < 50) {
+	    game.speed = 3;
+	    ball.speed = 6.5;
+	  } else if (game.score > 50) {
+	    game.speed = 3.5;
+	    ball.speed = 7;
+	  }
+	  resetGameSpeed(game, powerup);
+	}
+
+	function resetGameSpeed(game, powerup) {
+	  setTimeout(function () {
+	    game.slowDownActive = false;
+	    powerup.onScreen = true;
+	  }, 5000);
+	}
 
 	module.exports = Game;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10320,6 +10496,71 @@
 	}
 
 	module.exports = printScore;
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var ViewportHelper = __webpack_require__(6);
+
+	function Powerup(options, canvas) {
+	  this.gate = options.gate;
+	  this.y = this.gate.y - this.gate.gateHeight / 2; //top of gate
+	  this.width = options.width || 20;
+	  this.height = options.height || 20;
+	  this.action = options.action || "";
+	  if (this.action === "slowDown") {
+	    this.x = this.gate.gateStart / 2 - 10;
+	    this.img = new Image();
+	    this.img.src = "../assets/clock.png";
+	  } else if (this.action === "expandGates") {
+	    this.x = (this.gate.gateEnd + canvas.width) / 2 + 20;
+	    this.img = new Image();
+	    this.img.src = "../assets/saw.png";
+	  }
+
+	  this.onScreen = true;
+	}
+
+	Powerup.prototype.draw = function (ctx) {
+	  ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+	};
+
+	Powerup.prototype.update = function (gameSpeed, canvas) {
+	  if (this.onScreen === false) {
+	    console.log(this.gate.y, this.y);
+	    this.y = -500;
+	  } else {
+	    this.y = this.gate.y - this.height;
+	  }
+	};
+
+	module.exports = Powerup;
+
+/***/ },
+/* 14 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	function RectangularBall(x, y, width, height) {
+	  this.x = x || 50;
+	  this.y = y || 50;
+	  this.width = width || 10;
+	  this.height = height || 10;
+	}
+
+	RectangularBall.prototype.collidesWithPowerup = function (powerup) {
+	  if (this.x < powerup.x + powerup.width && this.x + this.width > powerup.x && this.y < powerup.y + powerup.height && this.height + this.y > powerup.y) {
+	    console.log("collision");
+	  } else {
+	    console.log("no collision");
+	  }
+	};
+
+	module.exports = RectangularBall;
 
 /***/ }
 /******/ ]);
