@@ -127,7 +127,7 @@
 
 	function drawGame(ctx, fallSpeed, acceleration, ballSpeed, canvas, gameInPlay, gates, ball, game) {
 	  var img = new Image();
-	  img.src = "../assets/wall.png";
+	  img.src = "assets/wall.png";
 	  if (Math.abs(ball.x - powerup.x) < 10 && Math.abs(ball.y - powerup.y) < 10) {
 	    console.log(ball.x, ball.y, powerup.x, powerup.y);
 	  }
@@ -10156,7 +10156,7 @@
 	  this.canvasWidth = canvas.width;
 	  this.scoreable = true;
 	  this.img = new Image();
-	  this.img.src = "../assets/board.png";
+	  this.img.src = "assets/board.png";
 	}
 
 	Gate.prototype.update = function (gameSpeed, canvas) {
@@ -10603,11 +10603,11 @@
 	  if (this.action === "slowDown") {
 	    this.x = this.gate.gateStart / 2 - 10;
 	    this.img = new Image();
-	    this.img.src = "../assets/clock.png";
+	    this.img.src = "assets/clock.png";
 	  } else if (this.action === "expandGates") {
 	    this.x = (this.gate.gateEnd + canvas.width) / 2 + 20;
 	    this.img = new Image();
-	    this.img.src = "../assets/saw.png";
+	    this.img.src = "assets/saw.png";
 	  }
 
 	  this.onScreen = true;

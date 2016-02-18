@@ -10027,7 +10027,7 @@
 	  this.canvasWidth = canvas.width;
 	  this.scoreable = true;
 	  this.img = new Image();
-	  this.img.src = "../assets/board.png";
+	  this.img.src = "assets/board.png";
 	}
 
 	Gate.prototype.update = function (gameSpeed, canvas) {
