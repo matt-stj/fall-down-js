@@ -47,7 +47,7 @@
 	"use strict";
 
 	var highScores = [];
-	if (localStorage["high-scores"] != undefined) {
+	if (localStorage["high-scores"] !== undefined) {
 	  highScores = JSON.parse(localStorage["high-scores"]);
 	}
 	displayHighScores();
@@ -58,8 +58,10 @@
 	var GateBuilder = __webpack_require__(7);
 	var GatePainter = __webpack_require__(8);
 	var CollisionDetect = __webpack_require__(9);
-	var Game = __webpack_require__(10);
-	var Scoring = __webpack_require__(11);
+	var Game = __webpack_require__(14);
+	var Scoring = __webpack_require__(15);
+	var PowerUp = __webpack_require__(16);
+	var RectangularBall = __webpack_require__(17);
 
 	var canvas = document.getElementById("game");
 	var ctx = canvas.getContext('2d');
@@ -71,12 +73,19 @@
 	var paused = null;
 	var lost = false;
 	var gates = [];
-	var ball = new Ball({}, canvas);
+	var ball = new Ball(canvas, {});
 	var game = new Game(canvas, ctx);
 	var score = [];
 	var scoreAdded = false;
 
 	GateBuilder(gates, canvas);
+	var powerup = new PowerUp({ gate: gates[1],
+	  action: "slowDown"
+	}, canvas);
+
+	var expandGates = new PowerUp({ gate: gates[3],
+	  action: "expandGates"
+	}, canvas);
 
 	canvas.addEventListener('click', function () {
 	  if (gameInPlay && !lost) {
@@ -90,9 +99,13 @@
 
 	requestAnimationFrame(function gameLoop() {
 	  ctx.clearRect(0, 0, canvas.width, canvas.height);
-	  checkIfPlayerLost(ball, canvas);
+	  checkIfPlayerLost(ball);
 	  if (gameInPlay && !lost) {
 	    drawGame(ctx, fallSpeed, acceleration, ballSpeed, canvas, gameInPlay, gates, ball, game);
+	    powerup.draw(ctx);
+	    powerup.update(game.speed, canvas);
+	    expandGates.draw(ctx);
+	    expandGates.update(game.speed, canvas);
 	    requestAnimationFrame(gameLoop);
 	  } else if (lost) {
 	    resetGame(ball, canvas, game, ctx);
@@ -106,7 +119,7 @@
 	  }
 	});
 
-	function checkIfPlayerLost(ball, canvas) {
+	function checkIfPlayerLost(ball) {
 	  if (gameInPlay && ball.y < ball.r) {
 	    lost = true;
 	  }
@@ -115,15 +128,20 @@
 	function drawGame(ctx, fallSpeed, acceleration, ballSpeed, canvas, gameInPlay, gates, ball, game) {
 	  var img = new Image();
 	  img.src = "../assets/wall.png";
+	  if (Math.abs(ball.x - powerup.x) < 10 && Math.abs(ball.y - powerup.y) < 10) {
+	    console.log(ball.x, ball.y, powerup.x, powerup.y);
+	  }
 	  ctx.drawImage(img, 0, 0);
 	  ball.draw(ctx);
 	  ball.update(fallSpeed, acceleration, canvas, gameInPlay);
 	  GatePainter(gates, ctx, game.speed, canvas);
-	  CollisionDetect(ball, gates, score, game);
-	  game.update(game.score, ball);
+	  CollisionDetect(ball, gates, score, game, powerup, expandGates);
+	  game.update(game, ball, powerup);
 	  Scoring(ctx, game.score);
-	  if (scoreAdded === true) {
+	  if (scoreAdded) {
 	    game.score = 0;
+	    powerup.gate = gates[1];
+	    expandGates.gate = gates[3];
 	    scoreAdded = false;
 	  }
 	}
@@ -131,7 +149,7 @@
 	function resetGame(ball, canvas, game) {
 	  ball.y = 10;
 	  gates = [];
-	  GateBuilder(gates, canvas);
+	  new GateBuilder(gates, canvas);
 	  if (scoreAdded === false) {
 	    updateHighScores(game.score, highScores);
 	    displayHighScores();
@@ -10015,8 +10033,8 @@
 
 	var BallHelper = __webpack_require__(3);
 
-	function Ball(options, canvas) {
-	  if (options === undefined) options = {};
+	function Ball(canvas) {
+	  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
 	  this.r = BallHelper.radius(options);
 	  this.x = BallHelper.xPosition(options, canvas);
@@ -10033,7 +10051,7 @@
 	  return this;
 	};
 
-	Ball.prototype.update = function (fallSpeed, keyboarder, canvas, gameInPlay) {
+	Ball.prototype.update = function (fallSpeed, keyboarder, canvas) {
 	  var ball = this;
 	  moveBallLaterally(ball, canvas, this.speed);
 	  moveBallLongitudinally(ball, canvas, this.speed);
@@ -10051,17 +10069,12 @@
 	  return ball.x > 0 && ball.x < canvas.width - ball.r && ball.y < canvas.height;
 	}
 
-	function topOfCanvas(ball) {
-	  return ball.r;
-	}
-
 	function moveBallLaterally(ball, canvas, ballSpeed) {
-	  debugger;
 	  if (leftArrowKeyDown(ball)) {
 	    ball.x -= ballSpeed;
 	  } else if (rightArrowKeyDown(ball, canvas)) {
 	    ball.x += ballSpeed;
-	  };
+	  }
 	}
 
 	function moveBallLongitudinally(ball, canvas, fallSpeed) {
@@ -10204,7 +10217,7 @@
 	  var spacing = 75;
 	  for (var i = 0; i < 6; i++) {
 	    var gatePosition = canvas.height - spacing;
-	    gates.push(new Gate({ y: gatePosition }, canvas));
+	    gates.push(new Gate({ y: gatePosition + 75 }, canvas));
 	    spacing += 75;
 	  }
 	}
@@ -10213,11 +10226,9 @@
 
 /***/ },
 /* 8 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
-
-	var Gate = __webpack_require__(4);
+	"use strict";
 
 	function displayGates(gates, ctx, gameSpeed, canvas) {
 	  for (var i = 0; i < gates.length; i++) {
@@ -10230,50 +10241,188 @@
 
 /***/ },
 /* 9 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var collisionDetect = function collisionDetect(ball, gates, score, game) {
+	var BallEdges = __webpack_require__(10);
+	var PowerupEdges = __webpack_require__(11);
+	var GatesEdges = __webpack_require__(12);
+	var GateExpander = __webpack_require__(13);
+
+	var collisionDetect = function collisionDetect(ball, gates, score, game, powerup, expandGates) {
 	  for (var i = 0; i < gates.length; i++) {
+	    var gate = GatesEdges.gate(gates, i);
 
-	    var centerOfBall = ball.y;
-	    var bottomOfBall = centerOfBall + ball.r;
-	    var topOfBall = centerOfBall + ball.r;
-	    var gate = gates[i];
-	    var centerOfGate = gates[i].y;
-	    var topOfGate = centerOfGate - gates[i].gateHeight / 2;
-	    var bottomOfGate = centerOfGate + gates[i].gateHeight / 2;
-	    var rightGate = gates[i].gateEnd;
-	    var leftGate = gates[i].gateStart;
-
-	    if (bottomOfBall > centerOfGate && centerOfBall < bottomOfGate && ball.x > rightGate) {
-	      ball.y = topOfGate;
-	      return;
-	    };
-	    if (bottomOfBall > centerOfGate && centerOfBall < bottomOfGate && ball.x < leftGate) {
-	      ball.y = topOfGate;
-	      return;
-	    };
-	    if (bottomOfGate < topOfBall && gate.scoreable === true) {
-
-	      // console.log(gate.scoreable)
-	      game.score++;
-	      gate.scoreable = false;
-	      console.log(score);
-	      // console.log(gate.scoreable)
-	      // console.log(score)
-	      return;
-
-	      throw new Error('None of the things happened.');
-	    };
+	    ballCollideswithGates(ball, gates, i);
+	    ballFallsBetweenGates(ball, gate, gates, i, game);
+	    ballHitsSlowdown(ball, powerup, game);
+	    ballHitsGateExpander(ball, gates, expandGates, game);
 	  }
 	};
+
+	function ballCollideswithGates(ball, gates, i) {
+	  if (ballOnTopofGate(ball, gates, i) && ball.x > GatesEdges.rightGate(gates, i) || ballOnTopofGate(ball, gates, i) && ball.x < GatesEdges.leftGate(gates, i)) {
+	    ball.y = GatesEdges.topOfGate(gates, i);
+	    return;
+	  };
+	}
+
+	function ballOnTopofGate(ball, gates, i) {
+	  return BallEdges.bottomOfBall(ball) > GatesEdges.centerOfGate(gates, i) && BallEdges.centerOfBall(ball) < GatesEdges.bottomOfGate(gates, i);
+	}
+
+	function ballFallsBetweenGates(ball, gate, gates, i, game) {
+	  if (GatesEdges.bottomOfGate(gates, i) < BallEdges.topOfBall(ball) && gate.scoreable === true) {
+
+	    game.score++;
+	    gate.scoreable = false;
+	    return;
+	  }
+	}
+
+	function ballHitsSlowdown(ball, powerup, game) {
+	  if (BallEdges.leftOfBall(ball) >= PowerupEdges.leftOfPowerup(powerup) && BallEdges.rightOfBall(ball) <= PowerupEdges.rightOfPowerup(powerup) && BallEdges.topOfBall(ball) <= PowerupEdges.powerupGateBottom(powerup) && BallEdges.bottomOfBall(ball) >= PowerupEdges.powerupGateTop(powerup)) {
+
+	    powerup.onScreen = false;
+	    game.slowDownActive = true;
+	  };
+	}
+
+	function ballHitsGateExpander(ball, gates, expandGates, game) {
+	  if (BallEdges.leftOfBall(ball) >= GateExpander.leftOfExpandGates(expandGates) && BallEdges.rightOfBall(ball) <= GateExpander.rightOfExpandGates(expandGates) && BallEdges.topOfBall(ball) <= GateExpander.expandGatesBottom(expandGates) && BallEdges.bottomOfBall(ball) >= GateExpander.expandGatesTop(expandGates)) {
+	    expandGates.onScreen = false;
+	    game.expandGatesActive = true;
+	    game.expandGates(gates, expandGates);
+	  };
+	}
 
 	module.exports = collisionDetect;
 
 /***/ },
 /* 10 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	module.exports = {
+
+	  centerOfBall: function centerOfBall(ball) {
+	    return ball.y;
+	  },
+	  horizCenterBall: function horizCenterBall(ball) {
+	    return ball.x;
+	  },
+	  bottomOfBall: function bottomOfBall(ball) {
+	    return ball.y + ball.r;
+	  },
+	  topOfBall: function topOfBall(ball) {
+	    return ball.y - ball.r;
+	  },
+	  rightOfBall: function rightOfBall(ball) {
+	    return ball.x + ball.r;
+	  },
+	  leftOfBall: function leftOfBall(ball) {
+	    return ball.x - ball.r;
+	  }
+
+	};
+
+/***/ },
+/* 11 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	module.exports = {
+
+	  topOfPowerup: function topOfPowerup(powerup) {
+	    return powerup.y - powerup.height / 2;
+	  },
+	  bottomOfPowerup: function bottomOfPowerup(powerup) {
+	    return powerup.y + powerup.height / 2;
+	  },
+	  rightOfPowerup: function rightOfPowerup(powerup) {
+	    return powerup.x + powerup.width / 2;
+	  },
+	  leftOfPowerup: function leftOfPowerup(powerup) {
+	    return powerup.x - powerup.width / 2;
+	  },
+	  centerOfPowerup: function centerOfPowerup(powerup) {
+	    return powerup.x;
+	  },
+	  powerupGateBottom: function powerupGateBottom(powerup) {
+	    return powerup.gate.y + 12;
+	  },
+	  powerupGateTop: function powerupGateTop(powerup) {
+	    return powerup.gate.y - 12;
+	  }
+
+	};
+
+/***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	module.exports = {
+
+	  gate: function gate(gates, i) {
+	    return gates[i];
+	  },
+	  centerOfGate: function centerOfGate(gates, i) {
+	    return gates[i].y;
+	  },
+	  topOfGate: function topOfGate(gates, i) {
+	    return gates[i].y - gates[i].gateHeight / 2;
+	  },
+	  bottomOfGate: function bottomOfGate(gates, i) {
+	    return gates[i].y + gates[i].gateHeight / 2;
+	  },
+	  rightGate: function rightGate(gates, i) {
+	    return gates[i].gateEnd;
+	  },
+	  leftGate: function leftGate(gates, i) {
+	    return gates[i].gateStart;
+	  }
+
+	};
+
+/***/ },
+/* 13 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	module.exports = {
+
+	  topOfExpandGates: function topOfExpandGates(expandGates) {
+	    return expandGates.y - expandGates.height / 2;
+	  },
+	  bottomOfExpandGates: function bottomOfExpandGates(expandGates) {
+	    return expandGates.y + expandGates.height / 2;
+	  },
+	  rightOfExpandGates: function rightOfExpandGates(expandGates) {
+	    return expandGates.x + expandGates.width / 2;
+	  },
+	  leftOfExpandGates: function leftOfExpandGates(expandGates) {
+	    return expandGates.x - expandGates.width / 2;
+	  },
+	  centerOfExpandGates: function centerOfExpandGates(expandGates) {
+	    return expandGates.x;
+	  },
+	  expandGatesBottom: function expandGatesBottom(expandGates) {
+	    return expandGates.gate.y + 12;
+	  },
+	  expandGatesTop: function expandGatesTop(expandGates) {
+	    return expandGates.gate.y - 12;
+	  }
+
+	};
+
+/***/ },
+/* 14 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10292,6 +10441,8 @@
 	  this.instructions = options.instructions || "Click to Play";
 	  this.speed = options.speed || 0;
 	  this.score = options.score || 0;
+	  this.slowDownActive = false;
+	  this.expandGatesActive = false;
 	};
 
 	Game.prototype["default"] = function (ctx) {
@@ -10341,34 +10492,90 @@
 	  ctx.fillText("Score: " + this.score, this.width / 2, this.height / 2 + 70);
 	};
 
-	Game.prototype.update = function (score, ball) {
-	  if (score < 2) {
-	    this.speed = 0;
-	  } else if (score > 2 && score < 5) {
-	    this.speed = 1;
-	  } else if (score > 5 && score < 10) {
-	    this.speed = 1.5;
-	  } else if (score > 10 && score < 20) {
-	    this.speed = 2;
-	  } else if (score > 20 && score < 30) {
-	    this.speed = 2.5;
-	    ball.speed = 5.5;
-	  } else if (score > 30 && score < 40) {
-	    this.speed = 3;
-	    ball.speed = 6;
-	  } else if (score > 40 && score < 50) {
-	    this.speed = 3.5;
-	    ball.speed = 6.5;
-	  } else if (score > 50) {
-	    this.speed = 4;
-	    ball.speed = 7;
+	Game.prototype.update = function (game, ball, powerup) {
+	  console.log("powerup onscreen = ", powerup.onScreen, "games slowdown active", game.slowDownActive);
+	  if (game.slowDownActive === false) {
+	    normalSpeed(game, ball);
+	  } else if (game.slowDownActive === true) {
+	    slowSpeed(game, ball, powerup);
 	  }
 	};
+
+	Game.prototype.expandGates = function (gates, powerup) {
+	  gates.forEach(function (gate) {
+	    gate.gateStart -= 25;
+	    gate.gateEnd += 25;
+	  });
+	  resetPowerup(this, powerup);
+	};
+
+	function resetPowerup(game, powerup) {
+	  setTimeout(function () {
+	    game.expandGatesActive = false;
+	    powerup.onScreen = true;
+	  }, 10000);
+	}
+
+	function normalSpeed(game, ball) {
+	  if (game.score < 2) {
+	    game.speed = 0;
+	  } else if (game.score > 2 && game.score < 5) {
+	    game.speed = 1;
+	  } else if (game.score > 5 && game.score < 10) {
+	    game.speed = 1.5;
+	  } else if (game.score > 10 && game.score < 20) {
+	    game.speed = 2;
+	  } else if (game.score > 20 && game.score < 30) {
+	    game.speed = 2.5;
+	    ball.speed = 5.5;
+	  } else if (game.score > 30 && game.score < 40) {
+	    game.speed = 3;
+	    ball.speed = 6;
+	  } else if (game.score > 40 && game.score < 50) {
+	    game.speed = 3.5;
+	    ball.speed = 6.5;
+	  } else if (game.score > 50) {
+	    game.speed = 4;
+	    ball.speed = 7;
+	  }
+	}
+
+	function slowSpeed(game, ball, powerup) {
+	  if (game.score < 2) {
+	    game.speed = 0;
+	  } else if (game.score > 2 && game.score < 5) {
+	    game.speed = 0.5;
+	  } else if (game.score > 5 && game.score < 10) {
+	    game.speed = 1;
+	  } else if (game.score > 10 && game.score < 20) {
+	    game.speed = 1.5;
+	  } else if (game.score > 20 && game.score < 30) {
+	    game.speed = 2.0;
+	    ball.speed = 5.5;
+	  } else if (game.score > 30 && game.score < 40) {
+	    game.speed = 2.5;
+	    ball.speed = 6;
+	  } else if (game.score > 40 && game.score < 50) {
+	    game.speed = 3;
+	    ball.speed = 6.5;
+	  } else if (game.score > 50) {
+	    game.speed = 3.5;
+	    ball.speed = 7;
+	  }
+	  resetGameSpeed(game, powerup);
+	}
+
+	function resetGameSpeed(game, powerup) {
+	  setTimeout(function () {
+	    game.slowDownActive = false;
+	    powerup.onScreen = true;
+	  }, 5000);
+	}
 
 	module.exports = Game;
 
 /***/ },
-/* 11 */
+/* 15 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -10378,6 +10585,71 @@
 	}
 
 	module.exports = printScore;
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var ViewportHelper = __webpack_require__(6);
+
+	function Powerup(options, canvas) {
+	  this.gate = options.gate;
+	  this.y = this.gate.y - this.gate.gateHeight / 2;
+	  this.width = options.width || 20;
+	  this.height = options.height || 20;
+	  this.action = options.action || "";
+	  if (this.action === "slowDown") {
+	    this.x = this.gate.gateStart / 2 - 10;
+	    this.img = new Image();
+	    this.img.src = "../assets/clock.png";
+	  } else if (this.action === "expandGates") {
+	    this.x = (this.gate.gateEnd + canvas.width) / 2 + 20;
+	    this.img = new Image();
+	    this.img.src = "../assets/saw.png";
+	  }
+
+	  this.onScreen = true;
+	}
+
+	Powerup.prototype.draw = function (ctx) {
+	  ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+	};
+
+	Powerup.prototype.update = function (gameSpeed, canvas) {
+	  if (this.onScreen === false) {
+	    console.log(this.gate.y, this.y);
+	    this.y = -500;
+	  } else {
+	    this.y = this.gate.y - this.height;
+	  }
+	};
+
+	module.exports = Powerup;
+
+/***/ },
+/* 17 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	function RectangularBall(x, y, width, height) {
+	  this.x = x || 50;
+	  this.y = y || 50;
+	  this.width = width || 10;
+	  this.height = height || 10;
+	}
+
+	RectangularBall.prototype.collidesWithPowerup = function (powerup) {
+	  if (this.x < powerup.x + powerup.width && this.x + this.width > powerup.x && this.y < powerup.y + powerup.height && this.height + this.y > powerup.y) {
+	    console.log("collision");
+	  } else {
+	    console.log("no collision");
+	  }
+	};
+
+	module.exports = RectangularBall;
 
 /***/ }
 /******/ ]);
