@@ -1,31 +1,12 @@
-# Game Time Starter Kit
+# Fall Down
 
-To install the dependencies:
+#### How to play
 
-```
-npm install
-```
+Click [here](http://matt-stj.github.io/) to play the game. 
 
-To fire up a development server:
+#### Instructions
 
-```
-npm start
-```
-
-Once the server is running, you can visit:
-
-* `http://localhost:8080/webpack-dev-server/` to run your application.
-* `http://localhost:8080/webpack-dev-server/test.html` to run your test suite in the browser.
-
-To build the static files:
-
-```js
-npm run build
-```
+Use the right and left arrow keys to direct the ball. When the ball passes through a gate, you score a point. Direct the ball toward the clock to slow down the game. The saw will cut the boards in half -- making it easier for you to advance. If the ball touches the ceiling, the game is over. High scores are displayed on the right and updated at the end of each game. 
 
 
-To run tests in Node:
 
-```js
-npm test
-```
