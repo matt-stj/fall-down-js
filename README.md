@@ -24,7 +24,7 @@ I'm a former writer and editor. My communication skills make me an asset to any 
 
 ### How to play
 
-Click [here](http://matt-stj.github.io/) to play the game. 
+Click [here](http://matt-stj.github.io/fall-down-js/) to play the game. 
 
 Use the right and left arrow keys to direct the ball. When the ball passes through a gate, you score a point. 
 
