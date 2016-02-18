@@ -12,6 +12,8 @@ Building API’s, working with Rails, and mastering Javascript frameworks are ar
 
 #### Emily Dowdle
 
+![Photo](https://avatars2.githubusercontent.com/u/12585856?v=3&s=460)
+
 [Website](http://emilydowdle.com) // [Github](https://github.com/emilydowdle/) // [Email](mailto:emily@emilydowdle.com)
 
 I believe in using TDD to create well-written code that meets the demands of business priorities. I’m passionate about learning and want to join an innovative team.
