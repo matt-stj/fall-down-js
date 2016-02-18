@@ -13,6 +13,8 @@ Building API’s, working with Rails, and mastering Javascript frameworks are ar
 #### Emily Dowdle
 
 ![Photo](https://avatars2.githubusercontent.com/u/12585856?v=3&s=460 =150x)
+<img src="https://avatars2.githubusercontent.com/u/12585856?v=3&s=460" alt="Emily Dowdle" width=150>
+
 
 [Website](http://emilydowdle.com) // [Github](https://github.com/emilydowdle/) // [Email](mailto:emily@emilydowdle.com)
 
