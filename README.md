@@ -1,5 +1,30 @@
 # Fall Down
 
+![Game In Action](http://g.recordit.co/80ndyEMZYD.gif)
+
+### Features
+
+* **High Scores:** `localStorage` provides a way to store the high scores and display them to the user after each game. 
+* **Powerups:** Collision detection allows the ball to give the appearance of resting on the gate, but it also allows the user to manipulate the game using one of the powerup features. The saw icon cuts the gates in half and the clock icon slows the game down. 
+* **Recycled Gates:** Gates are stored in an array. When a gate reaches the top of the canvas, it's redirected to beneath the canvas.
+* **Increased Difficulty:** The gates move at a faster speed as the game progresses, making it more difficult to advance.
+
+### How to play
+
+Click [here](http://matt-stj.github.io/fall-down-js/) to play the game. 
+
+Use the right and left arrow keys to direct the ball. When the ball passes through a gate, you score a point. 
+
+Direct the ball toward the clock to slow down the game. The saw will cut the boards in half -- making it easier for you to advance. If the ball touches the ceiling, the game is over. High scores are displayed on the right and updated at the end of each game. 
+
+### Tools
+
+* Javascript / ES6
+* HTML 5 Canvas
+* Mocha / Chai
+* Imagination
+
+
 ### The Team
 
 #### Matt Stjernholm
@@ -21,32 +46,6 @@ Building API’s, working with Rails, and mastering Javascript frameworks are ar
 I believe in using TDD to create well-written code that meets the demands of business priorities. I’m passionate about learning and want to join an innovative team.
 
 I'm a former writer and editor. My communication skills make me an asset to any team. I've worked directly with clients as a consultant and know how to jump into any situation and work with a diverse group of individuals.
-
-### How to play
-
-Click [here](http://matt-stj.github.io/fall-down-js/) to play the game. 
-
-Use the right and left arrow keys to direct the ball. When the ball passes through a gate, you score a point. 
-
-Direct the ball toward the clock to slow down the game. The saw will cut the boards in half -- making it easier for you to advance. If the ball touches the ceiling, the game is over. High scores are displayed on the right and updated at the end of each game. 
-
-### Tools
-
-* Javascript / ES6
-* HTML 5 Canvas
-* Mocha / Chai
-* Imagination
-
-### Features
-
-* **High Scores:** `localStorage` provides a way to store the high scores and display them to the user after each game. 
-* **Powerups:** Collision detection allows the ball to give the appearance of resting on the gate, but it also allows the user to manipulate the game using one of the powerup features. The saw icon cuts the gates in half and the clock icon slows the game down. 
-* **Recycled Gates:** Gates are stored in an array. When a gate reaches the top of the canvas, it's redirected to beneath the canvas.
-* **Increased Difficulty:** The gates move at a faster speed as the game progresses, making it more difficult to advance.
-
-
-![Game In Action](http://g.recordit.co/80ndyEMZYD.gif)
-
 
 To install the dependencies:
 
