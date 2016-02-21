@@ -1,7 +1,9 @@
 # Fall Down
 
-![Game In Action](http://g.recordit.co/80ndyEMZYD.gif)
+## Description
+A javascript rendition of the calculator game [falldown](http://tiwizard.com/downloads/fall-down/) with added powerup features.
 
+![Game In Action](http://g.recordit.co/onbODpkJDv.gif)
 ### Features
 
 * **High Scores:** `localStorage` provides a way to store the high scores and display them to the user after each game. 
