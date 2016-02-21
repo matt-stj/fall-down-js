@@ -47,7 +47,8 @@ I believe in using TDD to create well-written code that meets the demands of bus
 
 I'm a former writer and editor. My communication skills make me an asset to any team. I've worked directly with clients as a consultant and know how to jump into any situation and work with a diverse group of individuals.
 
-To install the dependencies:
+--- 
+### To run locally:
 
 ```
 npm install
