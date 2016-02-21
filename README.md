@@ -1,7 +1,7 @@
 # Fall Down
 
 ## Description
-A JavaScript rendition of the calculator game [falldown](http://tiwizard.com/downloads/fall-down/) with added powerup features.
+A JavaScript rendition of the TI-83 calculator game [Falldown](http://tiwizard.com/downloads/fall-down/) with added powerup features.
 
 ![Game In Action](http://g.recordit.co/onbODpkJDv.gif)
 ### Features
