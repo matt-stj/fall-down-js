@@ -13,7 +13,7 @@ A JavaScript rendition of the TI-83 calculator game [Falldown](http://tiwizard.c
 
 ### How to play
 
-Click [here](http://matt-stj.github.io/fall-down-js/) to play the game. 
+Visit [http://matt-stj.github.io/fall-down-js/](http://matt-stj.github.io/fall-down-js/) to play the game. 
 
 Use the right and left arrow keys to direct the ball. When the ball passes through a gate, you score a point. 
 
